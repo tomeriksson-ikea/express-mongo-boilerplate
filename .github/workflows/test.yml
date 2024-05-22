@@ -34,7 +34,7 @@ jobs:
                   # Convert to JSON array
                   changed_directories_json=$(echo "$changed_directories" | jq -R . | jq -s .)
                   
-                  '$(yarn run artifact-path)'"
+               
                   # Set output
                   echo "Changed directories: $changed_directories_json"
                   echo "changed_directories='$($changed_directories_json)'" >> "$GITHUB_OUTPUT"
