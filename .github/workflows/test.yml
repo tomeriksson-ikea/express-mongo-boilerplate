@@ -1,0 +1,32 @@
+name: List Changed Folders on Merge to Master
+
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    list-changed-folders:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Get list of top-level folders with changes
+              id: changed-files
+              run: |
+                  # Fetch only the last commit to optimize the process
+                  git fetch --depth=1 origin master
+                  
+                  # Get the list of files changed in the last commit
+                  changed_files=$(git diff --name-only HEAD^ HEAD)
+                  
+                  # Extract top-level directories from the list of changed files
+                  top_level_folders=$(echo "$changed_files" | awk -F/ '{print $1}' | sort -u | xargs)
+                  
+                  # Output the list of top-level folders
+                  echo "::set-output name=changed_folders::$top_level_folders"
+
+            - name: Print changed folders
+              run: echo "Changed folders: ${{ steps.changed-files.outputs.changed_folders }}"
