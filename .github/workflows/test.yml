@@ -1,31 +1,56 @@
-name: List Changed Folders on Merge to Master
+name: Dynamic CI for Changed Directories
 
 on:
     push:
         branches:
             - main
-
 jobs:
-    list-changed-folders:
+    check_changes:
         runs-on: ubuntu-latest
-
+        outputs:
+            changed_directories: ${{ steps.detect_changes.outputs.changed_directories }}
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v3
+              uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0
 
-            - name: Get list of top-level folders with changes
-              id: changed-files
+            - name: Detect changes
+              id: detect_changes
               run: |
-                  # Fetch only the last commit to optimize the process
-                  git fetch --depth=2 origin main
+                  # Get the base commit for comparison
+                  base_commit="${{ github.event.before }}"
+                  if [ -z "$base_commit" ]; then
+                    # Handle cases where before is empty
+                    base_commit=$(git rev-parse HEAD^1)
+                  fi
                   
-                  # Get the list of files changed in the last commit
-                  changed_files=$(git diff --name-only HEAD^ HEAD)
+                  # Get a list of changed files
+                  changed_files=$(git diff --name-only $base_commit ${{ github.sha }})
                   
-                  # Extract top-level directories from the list of changed files
-                  top_level_folders=$(echo "$changed_files" | awk -F/ '{print $1}' | sort -u | xargs)
+                  # Extract top-level directories
+                  changed_directories=$(echo "$changed_files" | grep '/' | cut -d/ -f1 | sort -u)
                   
-                  # Output the list of top-level folders
-                  echo "::set-output name=changed_folders::$top_level_folders"
-                
-                  echo $top_level_folders
+                  # Convert to JSON array
+                  changed_directories_json=$(echo "$changed_directories" | jq -R . | jq -s .)
+                  
+                  # Set output
+                  echo "Changed directories: $changed_directories_json"
+                  echo "::set-output name=changed_directories::$changed_directories_json"
+
+    build_directories:
+        runs-on: ubuntu-latest
+        needs: check_changes
+        strategy:
+            matrix:
+                directory: ${{ fromJson(needs.check_changes.outputs.changed_directories) }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v2
+              with:
+                  fetch-depth: 0  # Fetch all history
+
+            - name: Build ${{ matrix.directory }}
+              run: |
+                  echo "Running build for ${{ matrix.directory }}"
+                  # Add your build steps here for ${{ matrix.directory }}
