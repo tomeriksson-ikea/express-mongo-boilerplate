@@ -43,7 +43,7 @@ jobs:
         needs: check_changes
         strategy:
             matrix:
-                directory: ${{ fromJson(needs.check_changes.outputs.changed_directories) }}
+                directory: ${{ needs.check_changes.outputs.changed_directories }}
         steps:
             - name: Checkout repository
               uses: actions/checkout@v2
