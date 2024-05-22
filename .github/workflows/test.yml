@@ -17,7 +17,7 @@ jobs:
               id: changed-files
               run: |
                   # Fetch only the last commit to optimize the process
-                  git fetch --depth=1 origin master
+                  git fetch --depth=1 origin main
                   
                   # Get the list of files changed in the last commit
                   changed_files=$(git diff --name-only HEAD^ HEAD)
