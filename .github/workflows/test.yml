@@ -32,12 +32,12 @@ jobs:
                   changed_directories=$(echo "$changed_files" | grep '/' | cut -d/ -f1 | sort -u)
                   
                   # Convert to JSON array
-                  changed_directories_json=toJSON($(echo "$changed_directories" | jq -R . | jq -s .))
+                  changed_directories_json=$(echo "$changed_directories" | jq -R . | jq -s .)
                   
                   
                   # Set output
                   echo "Changed directories: $changed_directories_json"
-                  echo "::set-output name=changed_directories::$changed_directories_json"
+                  echo "::set-output name=changed_directories::toJSON($changed_directories_json)"
 
     build_directories:
         runs-on: ubuntu-latest
