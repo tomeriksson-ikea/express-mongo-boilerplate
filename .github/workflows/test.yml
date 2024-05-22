@@ -27,6 +27,5 @@ jobs:
                   
                   # Output the list of top-level folders
                   echo "::set-output name=changed_folders::$top_level_folders"
-
-            - name: Print changed folders
-              run: echo "Changed folders: ${{ steps.changed-files.outputs.changed_folders }}"
+                
+                  echo $top_level_folders
